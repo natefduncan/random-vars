@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 def get_reqs():
     with open('requirements.txt', "r") as f:
@@ -7,7 +7,7 @@ def get_reqs():
 setup(
     name='rv',
     version='0.1.0',
-    py_modules=['rv'],
+    py_modules=find_packages(), 
     install_requires=get_reqs(), 
     entry_points={
         'console_scripts': [
