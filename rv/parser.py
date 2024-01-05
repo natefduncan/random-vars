@@ -82,10 +82,28 @@ def test_distribution():
     )
 
 def test_equation():
-    print(statement.parse("z = x + y;"))
     assert statement.parse("z = x + y;") == Equation(
         variable = Variable("z"), 
         left = Variable("x"), 
         operator = Operator.ADD, 
         right = Variable("y")
     )
+
+def test_statements():
+    assert statements.parse("x ~ norm(0, 1); z = x + y;") == [
+            Distribution(
+                variable = Variable("x"), 
+                name = "norm", 
+                args = [Number(0), Number(1)]
+            ), 
+            Equation(
+                variable = Variable("z"), 
+                left = Variable("x"), 
+                operator = Operator.ADD, 
+                right = Variable("y")
+            )
+        ]
+
+
+
+
