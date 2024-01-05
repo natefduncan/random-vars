@@ -1,20 +1,21 @@
-from typing import List, Dict
+from typing import List, Dict, Optional, Any
 import numpy as np
 import pandas as pd
 from dataclasses import dataclass
 
 from rv.parser import statements, Statement, Distribution, Equation, Number, Variable, Value, Operator
 
-RANDOM_MAPPINGS = {
-    "norm": np.random.normal,
-    "binom": np.random.binomial, 
-    "poisson": np.random.poisson, 
-    "uniform": np.random.uniform, 
-    "negbinom": np.random.negative_binomial, 
-    "gamma": np.random.gamma, 
-    "beta": np.random.beta, 
-    "exp": np.random.exponential
-}
+def get_random_mappings(rng: np.random.Generator) -> Dict[str, Any]:
+    return {
+        "norm": rng.normal,
+        "binom": rng.binomial, 
+        "poisson": rng.poisson, 
+        "uniform": rng.uniform, 
+        "negbinom": rng.negative_binomial, 
+        "gamma": rng.gamma, 
+        "beta": rng.beta, 
+        "exp": rng.exponential
+    }
 
 def to_int(value: Value, output: Dict[str, np.ndarray], i: int) -> int:
     if isinstance(value, Number):
@@ -30,7 +31,9 @@ class Eval:
     def from_str(cls, input_str: str):
         return cls(statements.parse(input_str))
 
-    def random(self, nreps: int) -> pd.DataFrame:
+    def random(self, nreps: int, seed: Optional[int] = None) -> pd.DataFrame:
+        rng = np.random.default_rng(seed)
+        rand_mappings = get_random_mappings(rng)
         output = {}
         resolved = []
         while True:
@@ -47,7 +50,7 @@ class Eval:
                                 continue
 
                         if all([isinstance(a, Number) for a in statement.args]):
-                            output[statement.variable.value] = RANDOM_MAPPINGS[statement.name](*[value.value for value in statement.args], size=nreps)
+                            output[statement.variable.value] = rand_mappings[statement.name](*[value.value for value in statement.args], size=nreps)
                         else:
                             clean_args = []
                             for a in statement.args:
@@ -55,7 +58,7 @@ class Eval:
                                     clean_args.append(list(output[a.value]))
                                 elif isinstance(a, Number):
                                     clean_args.append([a.value] * nreps)
-                            output[statement.variable.value] = [RANDOM_MAPPINGS[statement.name](*args, size=1)[0] for args in zip(*clean_args)]
+                            output[statement.variable.value] = [rand_mappings[statement.name](*args, size=1)[0] for args in zip(*clean_args)]
                     resolved.append(statement.variable.value)
                 elif isinstance(statement, Equation):
                     l = statement.left.value
