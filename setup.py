@@ -7,8 +7,10 @@ def get_reqs():
 setup(
     name='rv',
     version='0.1.0',
-    py_modules=find_packages(), 
+    py_modules=["rv"], 
     install_requires=get_reqs(), 
+    include_package_data=True, 
+    packages=find_packages(), 
     entry_points={
         'console_scripts': [
             'rv = rv.main:cli',
