@@ -8,7 +8,7 @@ Quickly create random variables for common distributions and export to csv or js
 
 ## Example
 
-Using random variables as arguments and in equations.
+Using random variables as arguments and in equations:
 
 `rv random "x ~ poisson(2); y ~ exp(x); z = x * y;" --output csv --nreps 10 --decimals 3`
 
@@ -26,7 +26,7 @@ x,y,z
 4,2.617,10.469
 ```
 
-Piping to plot 
+Piping to plot: 
 
 ```
 rv random "x ~ norm(15, 3); y ~ norm(10, 1); z = x * y;" --output csv --nreps 1000 --decimals 3 
