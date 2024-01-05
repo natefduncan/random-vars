@@ -34,4 +34,4 @@ rv random "x ~ norm(15, 3); y ~ norm(10, 1); z = x * y;" --output csv --nreps 10
    | awk -F "," '{print $3}' 
    | feedgnuplot --histogram 0 --binwidth 15
 ```
-
+![plot](https://github.com/natefduncan/random-vars/assets/30030731/ecfda49f-a469-466d-8770-0c77262196e4)
