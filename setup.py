@@ -5,15 +5,15 @@ def get_reqs():
         return f.readlines()
 
 setup(
-    name='rv',
+    name='stats',
     version='0.1.0',
-    py_modules=["rv"], 
+    py_modules=["stats"], 
     install_requires=get_reqs(), 
     include_package_data=True, 
     packages=find_packages(), 
     entry_points={
         'console_scripts': [
-            'rv = rv.main:cli',
+            'stats = stats.main:cli',
         ],
     },
 )
