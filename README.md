@@ -1,4 +1,4 @@
-# Random Vars
+# Stats
 
 Quickly create random variables for common distributions and export to csv or json.
 
