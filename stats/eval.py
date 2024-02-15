@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from dataclasses import dataclass
 
-from rv.parser import statements, Statement, Distribution, Equation, Number, Variable, Value, Operator
+from stats.parser import statements, Statement, Distribution, Equation, Number, Variable, Value, Operator
 
 def get_random_mappings(rng: np.random.Generator) -> Dict[str, Any]:
     return {
@@ -11,6 +11,7 @@ def get_random_mappings(rng: np.random.Generator) -> Dict[str, Any]:
         "binom": rng.binomial, 
         "poisson": rng.poisson, 
         "uniform": rng.uniform, 
+        "unif": rng.uniform, 
         "negbinom": rng.negative_binomial, 
         "gamma": rng.gamma, 
         "beta": rng.beta, 

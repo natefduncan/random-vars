@@ -2,7 +2,7 @@ import click
 import json
 from typing import Optional
 
-from rv.eval import Eval
+from stats.eval import Eval
 
 @click.group
 def cli():

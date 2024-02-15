@@ -14,7 +14,7 @@ class Operator(enum.Enum):
 
 @dataclass
 class Number:
-    value: int
+    value: float 
 
 @dataclass
 class Variable:
@@ -42,13 +42,14 @@ Statements = List[Statement]
 # Parsers
 # x ~ norm(a, b); y ~ norm(c, d); z = x + y; 
 
-number_literal = regex(r"-?[0-9]+").map(int).map(Number)
+float_literal = regex(r"-?0?\.\d+").map(float).map(Number)
+number_literal = regex(r"-?[0-9]+").map(float).map(Number)
 
 identifier = regex("[a-zA-Z][a-zA-Z0-9_]*")
 
 variable = identifier.map(Variable)
 
-value = number_literal | variable
+value = float_literal | number_literal | variable
 
 space = regex(r"\s+")  # non-optional whitespace
 
@@ -78,8 +79,17 @@ def test_distribution():
     assert statement.parse("x ~ norm(0, 1);") == Distribution(
         variable = Variable("x"), 
         name = "norm", 
-        args = [Number(0), Number(1)]
+        args = [Number(0.0), Number(1.0)]
     )
+
+def test_float():
+    assert statement.parse("x ~ norm(0.5, 0.25);") == Distribution(
+            variable = Variable("x"), 
+            name = "norm", 
+            args = [Number(0.5), Number(0.25)]
+            )
+
+
 
 def test_equation():
     assert statement.parse("z = x + y;") == Equation(
@@ -94,7 +104,7 @@ def test_statements():
             Distribution(
                 variable = Variable("x"), 
                 name = "norm", 
-                args = [Number(0), Number(1)]
+                args = [Number(0.0), Number(1.0)]
             ), 
             Equation(
                 variable = Variable("z"), 
