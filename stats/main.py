@@ -9,12 +9,18 @@ def cli():
     pass
 
 @cli.command
-@click.argument("input-str", type=str)
+@click.option("-i", "--input-str", type=str, default="")
+@click.option("-f", "--filename", type=click.Path(exists=True))
 @click.option("-n", "--nreps", type=int, default=1000)
 @click.option("-o", "--output", type=str, default="csv", help="csv,json")
 @click.option("-d", "--decimals", type=int, default=2, help="decimals")
 @click.option("-s", "--seed", type=int, default=None, help="decimals")
-def random(input_str: str, nreps: int, output: str, decimals: int, seed: Optional[int]):
+def random(input_str: str, filename: click.Path, nreps: int, output: str, decimals: int, seed: Optional[int]):
+    if input_str == "":
+        with open(str(filename), "r") as f:
+            input_str = f.read()
+        input_str = input_str.replace("\n", "")
+
     ev = Eval.from_str(input_str)
     df = ev.random(nreps, seed)
     df = df.round(decimals)

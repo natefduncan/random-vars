@@ -10,7 +10,7 @@ Quickly create random variables for common distributions and export to csv or js
 
 Using random variables as arguments and in equations:
 
-`stats random "x ~ poisson(2); y ~ exp(x); z = x * y;" --output csv --nreps 10 --decimals 3`
+`stats random -i "x ~ poisson(2); y ~ exp(x); z = x * y;" --output csv --nreps 10 --decimals 3`
 
 ```
 x,y,z
@@ -29,9 +29,15 @@ x,y,z
 Piping to plot: 
 
 ```
-stats random "x ~ norm(15, 3); y ~ norm(10, 1); z = x * y;" --output csv --nreps 1000 --decimals 3 
+stats random -i "x ~ norm(15, 3); y ~ norm(10, 1); z = x * y;" --output csv --nreps 1000 --decimals 3 
    | tail -n+2 
    | awk -F "," '{print $3}' 
    | feedgnuplot --histogram 0 --binwidth 15
 ```
 ![plot](https://github.com/natefduncan/random-vars/assets/30030731/ecfda49f-a469-466d-8770-0c77262196e4)
+
+From file:
+
+```
+stats random -f examples/roi.example | tail -n+2 | awk -F "," '{print $NF}' | feedgnuplot --histogram 0 --binwidth 10000
+```

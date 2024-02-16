@@ -1,0 +1,8 @@
+loc ~ unif(4000, 6000); 
+share ~ unif(0.10, 0.50); 
+funding ~ unif(0, 0.25); 
+years ~ unif(3, 8); 
+price ~ unif(700, 1200); 
+margin ~ unif(0.03, 0.20); 
+discount ~ unif(0.10, 0.20); 
+dev = loc * share * price * margin;
