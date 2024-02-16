@@ -41,3 +41,5 @@ From file:
 ```
 stats random -f examples/roi.example | tail -n+2 | awk -F "," '{print $NF}' | feedgnuplot --histogram 0 --binwidth 10000
 ```
+![image](https://github.com/natefduncan/stats/assets/30030731/efb5c842-48ee-4e46-8c4d-72eb14f33b2b)
+
