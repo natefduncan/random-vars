@@ -1,116 +1,92 @@
-import enum
 from dataclasses import dataclass
-from typing import List, Optional, Union
 
-from parsy import from_enum, regex, seq, string, alt
+def isfloat(x):
+    try:
+        a = float(x)
+    except (TypeError, ValueError):
+        return False
+    else:
+        return True
 
-# AST Nodes
-
-class Operator(enum.Enum):
-    ADD = "+"
-    SUBTRACT = "-"
-    MULTIPLY = "*"
-    DIVIDE = "/"
-
-@dataclass
-class Number:
-    value: float 
-
-@dataclass
-class Variable:
-    value: str
-
-Value = Union[Number, Variable]
+def isint(x):
+    try:
+        a = float(x)
+        b = int(a)
+    except (TypeError, ValueError):
+        return False
+    else:
+        return a == b
 
 @dataclass
 class Distribution:
-    variable: Variable
+    variable: str
     name: str
-    args: List[Value]
+    args: list[str | int | float]
 
 @dataclass
 class Equation:
-    variable: Variable
-    left: Value
-    operator: Operator
-    right: Value
+    variable: str
+    operations: str
 
-Statement = Union[Distribution, Equation]
+Expression = Distribution | Equation
 
-Statements = List[Statement]
+def exprs_from_str(s: str) -> list[Expression]:
+    return [expr_from_str(i.replace("\n", "")) for i in s.split(";") if i]
 
-# Parsers
-# x ~ norm(a, b); y ~ norm(c, d); z = x + y; 
-
-float_literal = regex(r"-?0?\.\d+").map(float).map(Number)
-number_literal = regex(r"-?[0-9]+").map(float).map(Number)
-
-identifier = regex("[a-zA-Z][a-zA-Z0-9_]*")
-
-variable = identifier.map(Variable)
-
-value = float_literal | number_literal | variable
-
-space = regex(r"\s+")  # non-optional whitespace
-
-padding = regex(r"\s*")  # optional whitespace
-
-operator = from_enum(Operator)
-
-equation = seq(
-    variable=variable << padding,
-    _equal = string("=") << padding, 
-    left=value << padding,
-    operator=operator << padding,
-    right=value << padding
-).combine_dict(Equation)
-
-distribution = seq(
-    variable=variable << padding, 
-    _tilde = string("~") << padding,
-    name = identifier << string("("),
-    args=value.sep_by(padding + string(",") + padding, min=1) << string(")")
-).combine_dict(Distribution)
-
-statement = equation << string(";") | distribution << string(";")
-statements = statement.sep_by(string(" "))
+def expr_from_str(s: str) -> Expression:
+    s = s.replace(";", "")
+    if "=" in s:
+        # Equation
+        variable, operations = s.split("=")
+        return Equation(variable.strip(), operations.strip())
+    elif "~" in s:
+        # Distribution
+        variable, dist = s.split("~")
+        name, args_s = dist.split("(")
+        args_s = args_s.replace(")", "")
+        args_ls = [i.strip() for i in args_s.split(",")]
+        args = []
+        for a in args_ls:
+            if isint(a):
+                args.append(int(a))
+            elif isfloat(a):
+                args.append(float(a))
+            else: 
+                args.append(a)
+        return Distribution(variable.strip(), name.strip(), args)
+    else:
+        raise ValueError(f"String {s} is not an equation or distribution")
 
 def test_distribution():
-    assert statement.parse("x ~ norm(0, 1);") == Distribution(
-        variable = Variable("x"), 
+    assert expr_from_str("x ~ norm(0, 1);") == Distribution(
+        variable = "x", 
         name = "norm", 
-        args = [Number(0.0), Number(1.0)]
+        args = [0, 1]
     )
 
 def test_float():
-    assert statement.parse("x ~ norm(0.5, 0.25);") == Distribution(
-            variable = Variable("x"), 
+    assert expr_from_str("x ~ norm(0.5, 0.25);") == Distribution(
+            variable = "x", 
             name = "norm", 
-            args = [Number(0.5), Number(0.25)]
+            args = [0.5, 0.25]
             )
 
-
-
 def test_equation():
-    assert statement.parse("z = x + y;") == Equation(
-        variable = Variable("z"), 
-        left = Variable("x"), 
-        operator = Operator.ADD, 
-        right = Variable("y")
+    assert expr_from_str("z = x + y;") == Equation(
+        variable = "z", 
+        operations= "x + y"
     )
 
 def test_statements():
-    assert statements.parse("x ~ norm(0, 1); z = x + y;") == [
+    assert exprs_from_str("x ~ norm(0, 1); z = x + y;") == [
             Distribution(
-                variable = Variable("x"), 
+                variable = "x", 
                 name = "norm", 
-                args = [Number(0.0), Number(1.0)]
+                args = [0, 1]
             ), 
             Equation(
-                variable = Variable("z"), 
-                left = Variable("x"), 
-                operator = Operator.ADD, 
-                right = Variable("y")
+                variable = "z", 
+                operations = "x + y"
             )
         ]
 

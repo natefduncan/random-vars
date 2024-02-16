@@ -1,9 +1,12 @@
-from typing import List, Dict, Optional, Any
+from typing import Dict, Optional, Any
+import re
 import numpy as np
 import pandas as pd
 from dataclasses import dataclass
 
-from stats.parser import statements, Statement, Distribution, Equation, Number, Variable, Value, Operator
+from stats.parser import exprs_from_str, Distribution, Equation, Expression
+
+Number = int | float
 
 def get_random_mappings(rng: np.random.Generator) -> Dict[str, Any]:
     return {
@@ -18,19 +21,13 @@ def get_random_mappings(rng: np.random.Generator) -> Dict[str, Any]:
         "exp": rng.exponential
     }
 
-def to_int(value: Value, output: Dict[str, np.ndarray], i: int) -> int:
-    if isinstance(value, Number):
-        return value.value
-    elif isinstance(value, Variable):
-        return output[value.value][i]
-
 @dataclass
 class Eval:
-    statements: list[Statement]
+    expressions: list[Expression]
 
     @classmethod
     def from_str(cls, input_str: str):
-        return cls(statements.parse(input_str))
+        return cls(exprs_from_str(input_str))
 
     def random(self, nreps: int, seed: Optional[int] = None) -> pd.DataFrame:
         rng = np.random.default_rng(seed)
@@ -38,47 +35,37 @@ class Eval:
         output = {}
         resolved = []
         while True:
-            for statement in self.statements:
-                if statement.variable.value in resolved:
+            for expression in self.expressions:
+                if expression.variable in resolved:
                     continue
 
-                if isinstance(statement, Distribution):
-                    for a in statement.args:
-                        if isinstance(a, Number):
+                if isinstance(expression, Distribution):
+                    for a in expression.args:
+                        if isinstance(a, Number) or isinstance(a, float):
                             pass
-                        elif isinstance(a, Variable):
-                            if a.value not in resolved:
+                        elif isinstance(a, str):
+                            if a not in resolved:
                                 continue
 
-                        if all([isinstance(a, Number) for a in statement.args]):
-                            output[statement.variable.value] = rand_mappings[statement.name](*[value.value for value in statement.args], size=nreps)
+                        if all([isinstance(a, Number) for a in expression.args]):
+                            output[expression.variable] = rand_mappings[expression.name](*[value for value in expression.args], size=nreps)
                         else:
                             clean_args = []
-                            for a in statement.args:
-                                if isinstance(a, Variable):
-                                    clean_args.append(list(output[a.value]))
+                            for a in expression.args:
+                                if isinstance(a, str):
+                                    clean_args.append(list(output[a]))
                                 elif isinstance(a, Number):
-                                    clean_args.append([a.value] * nreps)
-                            output[statement.variable.value] = [rand_mappings[statement.name](*args, size=1)[0] for args in zip(*clean_args)]
-                    resolved.append(statement.variable.value)
-                elif isinstance(statement, Equation):
-                    l = statement.left.value
-                    r = statement.right.value
-                    if l not in resolved or r not in resolved:
+                                    clean_args.append([a] * nreps)
+                            output[expression.variable] = [rand_mappings[expression.name](*args, size=1)[0] for args in zip(*clean_args)]
+                    resolved.append(expression.variable)
+                elif isinstance(expression, Equation):
+                    variables = re.findall(r"[a-zA-Z0-9_]+", expression.operations)
+                    if any([i not in resolved for i in variables]):
                         continue
+                    output[expression.variable] = eval(expression.operations, {}, output)
+                    resolved.append(expression.variable)
 
-                    op = statement.operator
-                    if op == Operator.ADD:
-                        output[statement.variable.value] = output[l] + output[r]
-                    elif op == Operator.SUBTRACT:
-                        output[statement.variable.value] = output[l] - output[r]
-                    elif op == Operator.MULTIPLY:
-                        output[statement.variable.value] = output[l] * output[r]
-                    elif op == Operator.DIVIDE:
-                        output[statement.variable.value] = output[l] / output[r]
-                    resolved.append(statement.variable.value)
-
-            if len(self.statements) == len(resolved):
+            if len(self.expressions) == len(resolved):
                 break
 
         return pd.DataFrame(output)
