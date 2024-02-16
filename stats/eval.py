@@ -1,5 +1,4 @@
 from typing import Dict, Optional, Any
-import re
 import numpy as np
 import pandas as pd
 from dataclasses import dataclass
@@ -59,10 +58,12 @@ class Eval:
                             output[expression.variable] = [rand_mappings[expression.name](*args, size=1)[0] for args in zip(*clean_args)]
                     resolved.append(expression.variable)
                 elif isinstance(expression, Equation):
-                    variables = re.findall(r"[a-zA-Z0-9_]+", expression.operations)
-                    if any([i not in resolved for i in variables]):
+                    try:
+                        e = eval(expression.operations, {}, output)
+                    except Exception as e:
+                        print(e)
                         continue
-                    output[expression.variable] = eval(expression.operations, {}, output)
+                    output[expression.variable] = e
                     resolved.append(expression.variable)
 
             if len(self.expressions) == len(resolved):
