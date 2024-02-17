@@ -59,7 +59,7 @@ class Eval:
                     resolved.append(expression.variable)
                 elif isinstance(expression, Equation):
                     try:
-                        e = eval(expression.operations, {}, output)
+                        e = eval(expression.operations, globals(), output)
                     except Exception as e:
                         print(e)
                         continue
