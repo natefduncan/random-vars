@@ -1,8 +1,10 @@
-loc ~ unif(4000, 6000); 
-share ~ unif(0.10, 0.50); 
-funding ~ unif(0, 0.25); 
-years ~ unif(3, 8); 
+locations ~ unif(4000, 6000); 
+market_share ~ unif(0.10, 0.50); 
+grants ~ unif(0, 0.25); 
 price ~ unif(700, 1200); 
-margin ~ unif(0.03, 0.20); 
-discount ~ unif(0.10, 0.20); 
-dev = loc * share * price * margin;
+net_margin ~ unif(0.03, 0.20); 
+discount_rate ~ unif(0.10, 0.20); 
+years ~ unif(4, 8);
+yearly_cf = (locations * market_share * price * net_margin)/years; 
+capital_req = yearly_cf * (1 - grants); 
+dev = yearly_cf * (1 - (1 + discount_rate)**(-years))/discount_rate;
