@@ -25,7 +25,7 @@ def random(input_str: str, filename: click.Path, nreps: int, output: str, decima
     df = ev.random(nreps, seed, decimals)
     df = df.round(decimals)
     if output == "csv":
-        click.echo(df.to_csv(index=False))
+        click.echo(df.to_csv(index=False), nl=False)
     elif output == "json":
         click.echo(json.dumps(df.to_dict(orient="records")))
 
