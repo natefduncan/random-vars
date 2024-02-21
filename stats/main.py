@@ -22,7 +22,7 @@ def random(input_str: str, filename: click.Path, nreps: int, output: str, decima
         input_str = input_str.replace("\n", "")
 
     ev = Eval.from_str(input_str)
-    df = ev.random(nreps, seed)
+    df = ev.random(nreps, seed, decimals)
     df = df.round(decimals)
     if output == "csv":
         click.echo(df.to_csv(index=False))

@@ -14,6 +14,8 @@ def get_random_mappings(rng: np.random.Generator) -> Dict[str, Any]:
         "poisson": rng.poisson, 
         "uniform": rng.uniform, 
         "unif": rng.uniform, 
+        "integers": rng.integers, 
+        "int": rng.integers, 
         "negbinom": rng.negative_binomial, 
         "gamma": rng.gamma, 
         "beta": rng.beta, 
@@ -28,7 +30,7 @@ class Eval:
     def from_str(cls, input_str: str):
         return cls(exprs_from_str(input_str))
 
-    def random(self, nreps: int, seed: Optional[int] = None) -> pd.DataFrame:
+    def random(self, nreps: int, seed: Optional[int] = None, decimals: int = 2) -> pd.DataFrame:
         rng = np.random.default_rng(seed)
         rand_mappings = get_random_mappings(rng)
         output = {}
@@ -47,15 +49,15 @@ class Eval:
                                 continue
 
                         if all([isinstance(a, Number) for a in expression.args]):
-                            output[expression.variable] = rand_mappings[expression.name](*[value for value in expression.args], size=nreps)
+                            output[expression.variable] = np.round(rand_mappings[expression.name](*[value for value in expression.args], size=nreps), decimals)
                         else:
                             clean_args = []
                             for a in expression.args:
                                 if isinstance(a, str):
                                     clean_args.append(list(output[a]))
                                 elif isinstance(a, Number):
-                                    clean_args.append([a] * nreps)
-                            output[expression.variable] = [rand_mappings[expression.name](*args, size=1)[0] for args in zip(*clean_args)]
+                                    clean_args.append(np.round([a] * nreps, decimals))
+                            output[expression.variable] = np.round([rand_mappings[expression.name](*args, size=1)[0] for args in zip(*clean_args)], decimals)
                     resolved.append(expression.variable)
                 elif isinstance(expression, Equation):
                     try:
