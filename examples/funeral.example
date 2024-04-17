@@ -1,0 +1,8 @@
+locations ~ norm(18000, 200); 
+market_share ~ unif(0.10, 0.50); 
+price ~ int(120, 600); 
+net_margin ~ unif(0.10, 0.30); 
+discount_rate ~ unif(0.10, 0.20); 
+years ~ int(4, 8);
+yearly_cf = (locations * market_share * price * net_margin); 
+npv = yearly_cf * (1 - (1 + discount_rate)**(-years))/discount_rate;
