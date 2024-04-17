@@ -5,21 +5,20 @@ from dataclasses import dataclass
 
 from stats.parser import exprs_from_str, Distribution, Equation, Expression
 
-Number = int | float
-
 def get_random_mappings(rng: np.random.Generator) -> Dict[str, Any]:
     return {
-        "norm": rng.normal,
-        "binom": rng.binomial, 
-        "poisson": rng.poisson, 
-        "uniform": rng.uniform, 
-        "unif": rng.uniform, 
-        "integers": rng.integers, 
-        "int": rng.integers, 
-        "negbinom": rng.negative_binomial, 
-        "gamma": rng.gamma, 
-        "beta": rng.beta, 
-        "exp": rng.exponential
+        "norm": "rng.normal",
+        "binom": "rng.binomial", 
+        "poisson": "rng.poisson", 
+        "uniform": "rng.uniform", 
+        "unif": "rng.uniform", 
+        "integers": "rng.integers", 
+        "int": "rng.integers", 
+        "negbinom": "rng.negative_binomial", 
+        "gamma": "rng.gamma", 
+        "beta": "rng.beta", 
+        "exp": "rng.exponential", 
+        "choice": "rng.choice", 
     }
 
 @dataclass
@@ -35,30 +34,20 @@ class Eval:
         rand_mappings = get_random_mappings(rng)
         output = {}
         resolved = []
+
+        # Keep looping until all expression variables resolved
         while True:
             for expression in self.expressions:
                 if expression.variable in resolved:
                     continue
 
                 if isinstance(expression, Distribution):
-                    for a in expression.args:
-                        if isinstance(a, Number) or isinstance(a, float):
-                            pass
-                        elif isinstance(a, str):
-                            if a not in resolved:
-                                continue
-
-                        if all([isinstance(a, Number) for a in expression.args]):
-                            output[expression.variable] = np.round(rand_mappings[expression.name](*[value for value in expression.args], size=nreps), decimals)
-                        else:
-                            clean_args = []
-                            for a in expression.args:
-                                if isinstance(a, str):
-                                    clean_args.append(list(output[a]))
-                                elif isinstance(a, Number):
-                                    clean_args.append(np.round([a] * nreps, decimals))
-                            output[expression.variable] = np.round([rand_mappings[expression.name](*args, size=1)[0] for args in zip(*clean_args)], decimals)
-                    resolved.append(expression.variable)
+                    try:
+                        output[expression.variable] = np.round(eval(f"{rand_mappings[expression.name]}({expression.body}, size={nreps})", globals(), {**{"rng": rng}, **output}), decimals)
+                        resolved.append(expression.variable)
+                    except NameError as e:
+                        print(e)
+                        continue
                 elif isinstance(expression, Equation):
                     try:
                         e = eval(expression.operations, globals(), output)
