@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import re
 
 @dataclass
 class Distribution:
@@ -14,10 +15,13 @@ class Equation:
 Expression = Distribution | Equation
 
 def exprs_from_str(s: str) -> list[Expression]:
-    return [expr_from_str(i.replace("\n", "")) for i in s.split(";") if i]
+    return [expr_from_str(i.strip()) for i in s.split(";") if i.strip()]
 
 def expr_from_str(s: str) -> Expression:
-    s = s.replace(";", "")
+    # Delete comments
+    comment_re = r"^#.+$"
+    s = re.sub(comment_re, '', s, flags=re.M).strip()
+    s = s.replace("\n", "")
     if "~" in s:
         # Distribution
         variable, dist = s.split("~")

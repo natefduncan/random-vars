@@ -19,7 +19,6 @@ def random(input_str: str, filename: click.Path, nreps: int, output: str, decima
     if input_str == "":
         with open(str(filename), "r") as f:
             input_str = f.read()
-        input_str = input_str.replace("\n", "")
 
     ev = Eval.from_str(input_str)
     df = ev.random(nreps, seed, decimals)

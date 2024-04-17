@@ -1,9 +1,12 @@
+# This a comment
 locations ~ int(4000, 6000); 
 market_share ~ unif(0.10, 0.50); 
 grants ~ unif(0, 0.25); 
 price ~ int(700, 1200); 
 net_margin ~ unif(0.03, 0.20); 
 discount_rate ~ unif(0.10, 0.20); 
+
+# This is another comment
 years ~ int(4, 8);
 yearly_cf = (locations * market_share * price * net_margin)/years; 
 capital_req = yearly_cf * (1 - grants); 
